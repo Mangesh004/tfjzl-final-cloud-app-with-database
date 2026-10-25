@@ -50,7 +50,63 @@
                     </div>
                 {% endfor %}
             </div>
-            <!-- Course detail template changes go here -->
+
+<!-- Assessment section -->
+<div class="card mt-4 mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4>Course Assessment</h4>
+    </div>
+
+    <div class="card-body">
+        {% if course.question_set.all %}
+            <form method="post"
+                  action="{% url 'onlinecourse:submit' course.id %}">
+                {% csrf_token %}
+
+                {% for question in course.question_set.all %}
+                    <div class="mb-4">
+                        <h5>
+                            Question {{ forloop.counter }}:
+                            {{ question.question_text }}
+                        </h5>
+
+                        <p class="text-muted">
+                            Marks: {{ question.grade }}
+                        </p>
+
+                        {% for choice in question.choices.all %}
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="choice_{{ question.id }}"
+                                    value="{{ choice.id }}"
+                                    id="choice_{{ choice.id }}"
+                                    required
+                                >
+                                <label
+                                    class="form-check-label"
+                                    for="choice_{{ choice.id }}"
+                                >
+                                    {{ choice.choice_text }}
+                                </label>
+                            </div>
+                        {% empty %}
+                            <p>No answer choices have been added yet.</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-success">
+                    Submit Assessment
+                </button>
+            </form>
+        {% else %}
+            <p>No assessment questions are available for this course yet.</p>
+        {% endif %}
+    </div>
+</div>
+
     </div>
 </body>
 </html>
