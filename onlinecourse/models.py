@@ -124,11 +124,17 @@ class Question(models.Model):
         on_delete=models.CASCADE
     )
     question_text = models.TextField()
-    grade = models.IntegerField(default=50)
+    grade = models.IntegerField(default=1)
 
     def __str__(self):
         return self.question_text
 
+    def is_get_score(self, selected_ids):
+        correct_ids = set(
+            self.choices.filter(is_correct=True).values_list("id", flat=True)
+        )
+        selected_ids = set(selected_ids)
+        return selected_ids == correct_ids
 
 class Choice(models.Model):
     question = models.ForeignKey(
@@ -142,6 +148,7 @@ class Choice(models.Model):
     def __str__(self):
         return self.choice_text
 
+
 class Submission(models.Model):
     enrollment = models.ForeignKey(
         Enrollment,
@@ -150,10 +157,11 @@ class Submission(models.Model):
     choices = models.ManyToManyField(Choice)
 
     def __str__(self):
-        return f"Submission {self.id} for enrollment {self.enrollment_id}"
+        return f"Submission {self.id} for enrollment {self.enrollment.id}"
 
     def is_get_score(self):
-        score = 0
-        for choice in self.choices.filter(is_correct=True):
-            score += choice.question.grade
+        selected_choices = self.choices.select_related("question").filter(
+            is_correct=True
+        )
+        score = sum(choice.question.grade for choice in selected_choices)
         return score

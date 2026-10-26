@@ -179,42 +179,44 @@ def show_exam_result(request, course_id, submission_id):
         enrollment__course=course
     )
 
-    questions = Question.objects.filter(course=course).prefetch_related("choices")
+    questions = Question.objects.filter(
+        course=course
+    ).prefetch_related("choices")
+
     selected_ids = set(
         submission.choices.values_list("id", flat=True)
     )
 
     question_results = []
-    total_possible = 0
+    possible_score = 0
+    total_score = 0
 
     for question in questions:
-        total_possible += question.grade
+        possible_score += question.grade
 
         choices = list(question.choices.all())
         selected_for_question = [
-            choice for choice in choices if choice.id in selected_ids
+            choice for choice in choices
+            if choice.id in selected_ids
         ]
 
-        correct = any(
-            choice.is_correct for choice in selected_for_question
+        # Award marks only when the selected choices exactly match
+        # all the correct choices for the question.
+        correct = question.is_get_score(
+            [choice.id for choice in selected_for_question]
         )
+
+        question_score = question.grade if correct else 0
+        total_score += question_score
 
         question_results.append({
             "question": question,
             "choices": choices,
             "selected_choices": selected_for_question,
             "correct": correct,
+            "score": question_score,
         })
 
-
-    total_score = submission.is_get_score()
-    possible_score = sum(question.grade for question in questions)
-
-    # Keep the existing template variables working.
-    score = total_score
-    total_possible = possible_score
-
-    possible = possible_score
     grade = (
         round((total_score / possible_score) * 100, 2)
         if possible_score > 0 else 0
@@ -224,10 +226,16 @@ def show_exam_result(request, course_id, submission_id):
         "course": course,
         "submission": submission,
         "question_results": question_results,
-        "score": score,
-        "total_possible": total_possible,
+        "score": total_score,
+        "total_possible": possible_score,
         "total_score": total_score,
         "possible_score": possible_score,
+        "possible": possible_score,
         "grade": grade,
-        "possible": possible,
     }
+
+    return render(
+        request,
+        "onlinecourse/exam_result_bootstrap.html",
+        context
+    )
