@@ -17,18 +17,23 @@ class LessonInline(admin.StackedInline):
     extra = 5
 
 
-class ChoiceInline(admin.TabularInline):
-    model = Choice
-    extra = 2
-
-
 class QuestionInline(admin.StackedInline):
     model = Question
     extra = 1
 
 
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+    extra = 2
+
+
+class EnrollmentInline(admin.TabularInline):
+    model = Enrollment
+    extra = 1
+
+
 class CourseAdmin(admin.ModelAdmin):
-    inlines = [LessonInline]
+    inlines = [LessonInline, QuestionInline, EnrollmentInline]
     list_display = ("name", "pub_date")
     list_filter = ["pub_date"]
     search_fields = ["name", "description"]
@@ -36,6 +41,18 @@ class CourseAdmin(admin.ModelAdmin):
 
 class LessonAdmin(admin.ModelAdmin):
     list_display = ["title"]
+
+
+class InstructorAdmin(admin.ModelAdmin):
+    list_display = ("user", "full_time", "total_learners")
+
+
+class LearnerAdmin(admin.ModelAdmin):
+    list_display = ("user", "occupation")
+
+
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ("user", "course", "date_enrolled", "mode")
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -52,9 +69,9 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Lesson, LessonAdmin)
-admin.site.register(Instructor)
-admin.site.register(Learner)
-admin.site.register(Enrollment)
-admin.site.register(Choice)
+admin.site.register(Instructor, InstructorAdmin)
+admin.site.register(Learner, LearnerAdmin)
+admin.site.register(Enrollment, EnrollmentAdmin)
 admin.site.register(Question, QuestionAdmin)
+admin.site.register(Choice)
 admin.site.register(Submission, SubmissionAdmin)

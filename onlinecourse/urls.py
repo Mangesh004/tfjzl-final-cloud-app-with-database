@@ -13,11 +13,9 @@ urlpatterns = [
     path('logout/', views.logout_request, name='logout'),
     path('<int:pk>/', views.CourseDetailView.as_view(), name='course_details'),
     path('<int:course_id>/enroll/', views.enroll, name='enroll'),
-
-    # Add the two routes here
     path('<int:course_id>/submit/', views.submit, name='submit'),
     path(
-        '<int:course_id>/exam_result/<int:submission_id>/',
+        'course/<int:course_id>/submission/<int:submission_id>/result/',
         views.show_exam_result,
         name='show_exam_result',
     ),
